@@ -88,6 +88,42 @@ export type Database = {
         }
         Relationships: []
       }
+      price_items: {
+        Row: {
+          category: string
+          created_at: string
+          emoji: string
+          hidden: boolean
+          id: string
+          item_key: string
+          name: string
+          owner_id: string
+          price: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          emoji?: string
+          hidden?: boolean
+          id?: string
+          item_key: string
+          name: string
+          owner_id?: string
+          price: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          emoji?: string
+          hidden?: boolean
+          id?: string
+          item_key?: string
+          name?: string
+          owner_id?: string
+          price?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
