@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Sign-in is name + password only: the name is normalized and mapped to a synthetic `@peacekeeper.app` email (`src/lib/identity.ts`) with auto-confirm on; never ask users for an email. Why: the user wants name-only login.
+- Money logic (balances, splits, tiers) lives in pure functions in `src/lib/money.ts` with tests; UI routes only call them. Why: keeps the rules testable.
+- Court messages are local Hinglish templates in `src/lib/court.ts`; only friend name + amount are inserted and sent via a `wa.me` link. Why: instant, no AI cost, predictable PG content.
+- Signed-in pages live under `src/routes/_authenticated/` (client-only gate redirecting to `/`, the login page); data is read with the browser client under RLS (owner-only rows).
+- Click sounds are synthesized with WebAudio from one global click listener in `__root.tsx`; buttons get the shake via the shared button variant, not per-component styles.
