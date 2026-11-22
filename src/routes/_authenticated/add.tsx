@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState, PageHeader } from "@/components/PageHeader";
-import { friendsQuery, quipAdd, type Friend } from "@/lib/data";
+import { friendsQuery, priceItemsQuery, quipAdd, type Friend } from "@/lib/data";
+import { QuickAdd } from "@/components/QuickAdd";
+import { cartNote, cartTotal, type CartLine } from "@/lib/prices";
+import { calcBus } from "@/lib/calc";
 import { computeSplit, formatINR, round2, type Kind } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +24,11 @@ export const Route = createFileRoute("/_authenticated/add")({
       { property: "og:description", content: "Log a split in seconds." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(friendsQuery),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(friendsQuery),
+      context.queryClient.ensureQueryData(priceItemsQuery),
+    ]),
   component: AddPage,
 });
 
@@ -31,7 +38,6 @@ const MODES: Array<{ id: Kind; title: string; emoji: string; sub: string }> = [
   { id: "split", title: "Split", emoji: "🍕", sub: "Bill sabme baraabar baanto" },
 ];
 
-const NOTE_CHIPS = ["Chai ☕", "Maggi 🍜", "Printout 🖨️", "Canteen 🍛", "Auto 🛺", "Recharge 📱", "Party 🎉", "Zomato 🛵"];
 
 function AddPage() {
   const qc = useQueryClient();
@@ -43,6 +49,19 @@ function AddPage() {
   const [payer, setPayer] = useState<string>("me");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const { data: priceRows } = useSuspenseQuery(priceItemsQuery);
+  const [cart, setCart] = useState<CartLine[]>([]);
+
+  // Calculator "Amount mein daalo" lands here.
+  useEffect(() => calcBus.subscribe((n) => setAmount(String(n))), []);
+
+  function updateCart(next: CartLine[]) {
+    setCart(next);
+    if (next.length) {
+      setAmount(String(cartTotal(next)));
+      setNote(cartNote(next));
+    }
+  }
 
   const total = Number(amount);
   const splitRows =
@@ -126,6 +145,8 @@ function AddPage() {
         ))}
       </div>
 
+      <QuickAdd rows={priceRows} cart={cart} onChange={updateCart} />
+
       <form onSubmit={submit} className="sticker-lg grid gap-6 p-6 md:grid-cols-2 md:p-8">
         <div className="space-y-5">
           <div className="space-y-2">
@@ -145,18 +166,7 @@ function AddPage() {
           <div className="space-y-2">
             <Label htmlFor="note">Kis cheez ka?</Label>
             <Input id="note" placeholder="2 chai, 1 samosa…" value={note} onChange={(e) => setNote(e.target.value)} />
-            <div className="flex flex-wrap gap-2 pt-1">
-              {NOTE_CHIPS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setNote(c)}
-                  className="rounded-full border-2 border-ink bg-card px-3 py-1 text-xs font-bold shadow-sticker-sm hover:animate-shake"
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
+            <p className="text-xs text-muted-foreground">Quick add se bill banao, ya seedha amount likho — dono editable hai ✏️</p>
           </div>
         </div>
 

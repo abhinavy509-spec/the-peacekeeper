@@ -5,6 +5,7 @@ import { Volume2, VolumeX, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { FloatingMemes } from "@/components/FloatingMemes";
+import { Calculator } from "@/components/Calculator";
 import { Button } from "@/components/ui/button";
 import { profileQuery } from "@/lib/data";
 import { isMuted, setMuted } from "@/lib/sound";
@@ -95,6 +96,8 @@ function AppShell() {
       <main className="mx-auto max-w-6xl px-5 py-8">
         <Outlet />
       </main>
+
+      <Calculator />
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 gap-1 rounded-2xl border-2 border-ink bg-card p-1.5 shadow-sticker md:hidden">

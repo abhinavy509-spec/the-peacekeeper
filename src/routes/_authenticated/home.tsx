@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/PageHeader";
 import { entriesQuery, friendsQuery, profileQuery, quipSettle } from "@/lib/data";
-import { formatINR, netByFriend, totals } from "@/lib/money";
+import { cibilScore, formatINR, netByFriend, totals } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -38,6 +38,7 @@ function HomePage() {
   const { data: profile } = useSuspenseQuery(profileQuery);
   const net = netByFriend(entries);
   const t = totals(net);
+  const myCibil = cibilScore(entries, "i_owe");
   const byId = Object.fromEntries(friends.map((f) => [f.id, f]));
 
   const settleFriend = useMutation({
@@ -108,6 +109,20 @@ function HomePage() {
           emoji="🧮"
           tone="ink"
         />
+      </div>
+
+      <div className="sticker mt-5 flex flex-wrap items-center gap-4 bg-secondary p-4">
+        <span className="text-4xl animate-bob">📊</span>
+        <div className="flex-1">
+          <p className="text-xs font-bold uppercase tracking-wider">Tumhara Roommate CIBIL</p>
+          <p className="font-display text-2xl font-extrabold">
+            {myCibil.score} <span className="text-base">· {myCibil.badge}</span>
+          </p>
+        </div>
+        <div className="h-3 w-full max-w-xs overflow-hidden rounded-full border-2 border-ink bg-card">
+          <div className="h-full bg-primary" style={{ width: `${((myCibil.score - 300) / 600) * 100}%` }} />
+        </div>
+        <p className="w-full text-xs font-medium sm:w-auto">Time pe udhaar chukao, score badhao 📈</p>
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_1fr]">

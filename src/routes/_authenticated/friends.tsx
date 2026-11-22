@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState, PageHeader } from "@/components/PageHeader";
 import { entriesQuery, FRIEND_EMOJIS, friendsQuery, pick } from "@/lib/data";
-import { formatINR, netByFriend } from "@/lib/money";
+import { cibilScore, formatINR, netByFriend } from "@/lib/money";
 import { normalizePhone } from "@/lib/court";
 import { cn } from "@/lib/utils";
 
@@ -146,6 +146,7 @@ function FriendsPage() {
             <ul className="grid gap-4 sm:grid-cols-2">
               {friends.map((f, i) => {
                 const amt = net[f.id] ?? 0;
+                const cibil = cibilScore(entries.filter((e) => e.friend_id === f.id), "they_owe");
                 return (
                   <li
                     key={f.id}
@@ -182,9 +183,15 @@ function FriendsPage() {
                         </Button>
                       )}
                     </div>
+                    <div className="mt-4 flex items-center justify-between rounded-lg border-2 border-ink bg-muted px-3 py-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Roommate CIBIL</span>
+                      <span className="text-sm font-extrabold">
+                        {cibil.score} · {cibil.badge}
+                      </span>
+                    </div>
                     <p
                       className={cn(
-                        "mt-4 rounded-lg border-2 border-dashed px-3 py-2 text-sm font-bold",
+                        "mt-2 rounded-lg border-2 border-dashed px-3 py-2 text-sm font-bold",
                         amt > 0 && "border-gain text-gain",
                         amt < 0 && "border-loss text-loss",
                         amt === 0 && "border-ink/30 text-muted-foreground",

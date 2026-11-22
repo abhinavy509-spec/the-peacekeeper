@@ -61,3 +61,14 @@ const QUIPS_SETTLE = [
 export const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)] ?? arr[0]!;
 export const quipAdd = () => pick(QUIPS_ADD);
 export const quipSettle = () => pick(QUIPS_SETTLE);
+
+export type PriceRow = Tables<"price_items">;
+
+export const priceItemsQuery = queryOptions({
+  queryKey: ["price_items"],
+  queryFn: async (): Promise<PriceRow[]> => {
+    const { data, error } = await supabase.from("price_items").select("*").order("created_at");
+    if (error) throw error;
+    return data;
+  },
+});

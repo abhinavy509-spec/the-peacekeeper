@@ -12,6 +12,8 @@ import { entriesQuery, friendsQuery } from "@/lib/data";
 import { formatINR, netByFriend } from "@/lib/money";
 import { generateMessage, normalizePhone, TONES, whatsappLink, type Tone } from "@/lib/court";
 import { cn } from "@/lib/utils";
+import { BullshitMeter } from "@/components/BullshitMeter";
+import { calcBus } from "@/lib/calc";
 
 export const Route = createFileRoute("/_authenticated/court")({
   validateSearch: (s: Record<string, unknown>): { friend?: string } =>
@@ -56,6 +58,8 @@ function CourtPage() {
     if (friend && amt > 0) setMessage(generateMessage(tone, friend.name, amt));
     else setMessage("");
   }, [tone, friendId, amount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => calcBus.subscribe((n) => setAmount(String(n))), []);
 
   const reroll = () => friend && amt > 0 && setMessage((m) => generateMessage(tone, friend.name, amt, Math.random, m));
 
@@ -116,7 +120,7 @@ function CourtPage() {
 
           <section>
             <h2 className="mb-3 text-lg font-extrabold">2. Judge ka tone 🎭</h2>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               {TONES.map((t) => (
                 <button
                   key={t.id}
@@ -210,6 +214,8 @@ function CourtPage() {
           )}
         </section>
       </div>
+
+      <BullshitMeter friend={friend} amount={amt} tone={tone} />
     </div>
   );
 }

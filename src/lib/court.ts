@@ -1,14 +1,22 @@
 import { formatINR } from "./money";
 
-export type Tone = "chacha" | "bestie" | "service";
+export type Tone = "chacha" | "bestie" | "service" | "warden";
 
 export const TONES: Array<{ id: Tone; label: string; emoji: string; blurb: string }> = [
   { id: "chacha", label: "Kanpuriya Chacha", emoji: "👴🏽", blurb: "Gyaan + drama, full Kanpur style" },
   { id: "bestie", label: "Toxic Bestie", emoji: "💅", blurb: "Just checking… but louder" },
   { id: "service", label: "Service Center Wale", emoji: "🎧", blurb: "Formal, polite, thoda creepy" },
+  { id: "warden", label: "Strict Warden", emoji: "👮🏽", blurb: "Clear. Firm. No loopholes." },
 ];
 
 const TEMPLATES: Record<Tone, string[]> = {
+  warden: [
+    "NOTICE 📢 {name}, aap par {amount} ka bakaya hai. 24 ghante mein clear karo, warna gate pass cancel. — Warden 👮🏽",
+    "{name}! Room inspection mein {amount} ka udhaar mila hai. Ye hostel hai, dharamshala nahi. Turant jama karo. 🚨",
+    "Attention {name}: {amount} pending. Koi bahana nahi chalega — na UPI down, na wallet room pe. Aaj hi. ⏰",
+    "{name}, ye pehli aur aakhri warning hai. {amount} wapas karo, warna mess mein naam announce hoga. 📋",
+    "Hostel rule no. 420: udhaar 7 din se zyada nahi. {name}, aapka {amount} overdue hai. Action liya jayega. 🛑",
+  ],
   chacha: [
     "Arre {name} bhaiya, ka haal chaal? 👴🏽 Suno, {amount} ab tak nahi lautaye ho. Hum toh kehte hai — paisa lautana sanskaar hai, warna bhaukaal khatam! 😤",
     "E {name}! Jhaade rehna… {amount} udhaar pe baithe ho, aur chai pe chai uda rahe ho? Pehle hisaab saaf karo, phir Ganga nahao. 🙏",

@@ -35,3 +35,6 @@ use the editor.
 - Court messages are local Hinglish templates in `src/lib/court.ts`; only friend name + amount are inserted and sent via a `wa.me` link. Why: instant, no AI cost, predictable PG content.
 - Signed-in pages live under `src/routes/_authenticated/` (client-only gate redirecting to `/`, the login page); data is read with the browser client under RLS (owner-only rows).
 - Click sounds are synthesized with WebAudio from one global click listener in `__root.tsx`; buttons get the shake via the shared button variant, not per-component styles.
+- Bullshit-o-Meter rates excuses via an authenticated server function (`src/lib/excuse.functions.ts`, Lovable AI Gateway) and falls back to the local rater in `src/lib/excuse.ts` labelled as offline. Why: the demo must never dead-end.
+- Rate list defaults live in code (`src/lib/prices.ts`); `price_items` rows only store per-user overrides, hidden defaults and custom items, merged by `item_key`. Why: defaults can change without seeding every account.
+- The floating calculator hands results to pages through `calcBus` in `src/lib/calc.ts`; pages that accept an amount subscribe in an effect.

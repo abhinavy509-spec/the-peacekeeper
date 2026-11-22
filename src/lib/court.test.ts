@@ -4,7 +4,7 @@ import { nameToEmail } from "./identity";
 
 describe("court messages", () => {
   it("every tone includes the friend's name and the entered amount", () => {
-    for (const tone of ["chacha", "bestie", "service"] as const) {
+    for (const tone of ["chacha", "bestie", "service", "warden"] as const) {
       for (let i = 0; i < 10; i++) {
         const msg = generateMessage(tone, "Rohit", 250, () => i / 10);
         expect(msg).toContain("Rohit");

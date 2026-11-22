@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { EmptyState, PageHeader } from "@/components/PageHeader";
 import { entriesQuery, friendsQuery } from "@/lib/data";
-import { formatINR, netByFriend, tierFor, type Tier } from "@/lib/money";
+import { cibilScore, formatINR, netByFriend, tierFor, type Tier } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/leaderboard")({
@@ -52,12 +52,12 @@ const LABELS = {
 function LeaderboardPage() {
   const { data: friends } = useSuspenseQuery(friendsQuery);
   const { data: entries } = useSuspenseQuery(entriesQuery);
-  const [view, setView] = useState<"owes" | "lent">("owes");
+  const [view, setView] = useState<"owes" | "lent" | "cibil">("owes");
   const net = netByFriend(entries);
 
   const rows = friends.map((f) => {
     const v = net[f.id] ?? 0;
-    return { friend: f, amount: view === "owes" ? Math.max(v, 0) : Math.max(-v, 0) };
+    return { friend: f, amount: view === "lent" ? Math.max(-v, 0) : Math.max(v, 0) };
   });
   const max = Math.max(0, ...rows.map((r) => r.amount));
   const ranked = [...rows].filter((r) => r.amount > 0).sort((a, b) => b.amount - a.amount);
@@ -71,7 +71,7 @@ function LeaderboardPage() {
         sticker="🏆"
       />
 
-      <div className="mb-6 inline-grid grid-cols-2 gap-2 rounded-2xl border-2 border-ink bg-card p-1.5 shadow-sticker">
+      <div className="mb-6 inline-grid grid-cols-3 gap-2 rounded-2xl border-2 border-ink bg-card p-1.5 shadow-sticker">
         <button
           type="button"
           onClick={() => setView("owes")}
@@ -92,9 +92,25 @@ function LeaderboardPage() {
         >
           🏦 Sabse zyada debt
         </button>
+        <button
+          type="button"
+          onClick={() => setView("cibil")}
+          className={cn(
+            "rounded-xl px-4 py-2 text-sm font-bold",
+            view === "cibil" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+          )}
+        >
+          📊 CIBIL score
+        </button>
       </div>
 
-      {friends.length === 0 ? (
+      {view === "cibil" && friends.length > 0 ? (
+        <CibilBoard
+          rows={friends
+            .map((f) => ({ friend: f, ...cibilScore(entries.filter((e) => e.friend_id === f.id), "they_owe") }))
+            .sort((a, b) => b.score - a.score)}
+        />
+      ) : friends.length === 0 ? (
         <EmptyState sticker="🏟️" title="Stadium khaali hai" sub="Dost add karo aur hisaab likho, tab ranking banegi." />
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -110,7 +126,7 @@ function LeaderboardPage() {
                     )}
                   >
                     <span className="font-display text-4xl font-extrabold text-ink">{tier}</span>
-                    <span className="text-[10px] font-bold leading-tight text-ink">{LABELS[view][tier]}</span>
+                    <span className="text-[10px] font-bold leading-tight text-ink">{LABELS[view === "lent" ? "lent" : "owes"][tier]}</span>
                   </div>
                   <div className="flex min-h-[92px] flex-wrap items-center gap-2 p-3">
                     {people.length === 0 ? (
@@ -168,6 +184,43 @@ function LeaderboardPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CibilBoard({
+  rows,
+}: {
+  rows: Array<{ friend: { id: string; name: string; emoji: string }; score: number; badge: string }>;
+}) {
+  return (
+    <div className="sticker-lg p-6">
+      <p className="mb-5 text-sm text-muted-foreground">
+        300 se 900 tak. Time pe paise lautao toh score upar, "kal pakka" bolte raho toh neeche 📉
+      </p>
+      <ul className="space-y-4">
+        {rows.map((r, i) => (
+          <li key={r.friend.id} className="grid grid-cols-[32px_40px_1fr_auto] items-center gap-3">
+            <span className="font-display text-lg font-extrabold">#{i + 1}</span>
+            <span className="text-3xl">{r.friend.emoji}</span>
+            <div>
+              <p className="font-bold">
+                {r.friend.name} <span className="text-xs font-semibold text-muted-foreground">· {r.badge}</span>
+              </p>
+              <div className="mt-1 h-3 overflow-hidden rounded-full border-2 border-ink bg-muted">
+                <div
+                  className={cn(
+                    "h-full",
+                    r.score >= 800 ? "bg-gain" : r.score >= 650 ? "bg-tier-c" : r.score >= 500 ? "bg-secondary" : "bg-primary",
+                  )}
+                  style={{ width: `${((r.score - 300) / 600) * 100}%` }}
+                />
+              </div>
+            </div>
+            <span className="font-display text-2xl font-extrabold">{r.score}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

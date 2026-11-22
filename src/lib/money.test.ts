@@ -42,3 +42,20 @@ describe("tiers", () => {
     expect(tierFor(0, 100)).toBe("D");
   });
 });
+
+import { cibilScore } from "./money";
+describe("roommate cibil", () => {
+  const now = new Date("2026-11-22T00:00:00Z");
+  it("no history is a 750 Fresher", () => {
+    expect(cibilScore([], "they_owe", now)).toEqual({ score: 750, badge: "Fresher 🐣" });
+  });
+  it("always settled scores 850 (Ambani of the Hostel)", () => {
+    const r = cibilScore([{ direction: "they_owe", amount: 100, settled: true, created_at: "2026-11-01T00:00:00Z" }], "they_owe", now);
+    expect(r).toEqual({ score: 850, badge: "Ambani of the Hostel 👑" });
+  });
+  it("₹500 pending for 10 days drops to 400 (Certified Kanjoos)", () => {
+    const r = cibilScore([{ direction: "they_owe", amount: 500, settled: false, created_at: "2026-11-12T00:00:00Z" }], "they_owe", now);
+    expect(r.score).toBe(400);
+    expect(r.badge).toBe("Certified Kanjoos 🪙");
+  });
+});
