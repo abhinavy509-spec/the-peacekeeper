@@ -9,7 +9,13 @@ export interface CalcState {
   error: string | null;
 }
 
-export const initialCalc: CalcState = { display: "0", acc: null, op: null, fresh: true, error: null };
+export const initialCalc: CalcState = {
+  display: "0",
+  acc: null,
+  op: null,
+  fresh: true,
+  error: null,
+};
 
 function apply(a: number, b: number, op: Op): number | null {
   switch (op) {

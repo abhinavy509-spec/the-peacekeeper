@@ -11,7 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportError } from "../lib/error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { playRandomClick } from "@/lib/sound";
@@ -42,7 +42,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -83,13 +83,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "The Peacekeeper — Hostel ka hisaab" },
       {
         name: "description",
-        content: "Track debts, dues and splits with your hostel friends — with memes and Roommate Court.",
+        content:
+          "Track debts, dues and splits with your hostel friends — with memes and Roommate Court.",
       },
       { name: "author", content: "Abhinav Yadav" },
       { property: "og:title", content: "The Peacekeeper — Hostel ka hisaab" },
       {
         property: "og:description",
-        content: "Track debts, dues and splits with your hostel friends — with memes and Roommate Court.",
+        content:
+          "Track debts, dues and splits with your hostel friends — with memes and Roommate Court.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

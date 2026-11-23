@@ -28,7 +28,17 @@ export function PageHeader({
   );
 }
 
-export function EmptyState({ sticker, title, sub, children }: { sticker: string; title: string; sub: string; children?: ReactNode }) {
+export function EmptyState({
+  sticker,
+  title,
+  sub,
+  children,
+}: {
+  sticker: string;
+  title: string;
+  sub: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="sticker flex flex-col items-center gap-2 p-10 text-center">
       <span className="text-6xl animate-bob">{sticker}</span>

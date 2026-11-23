@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
+import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedChoresRouteImport } from './routes/_authenticated/chores'
 import { Route as AuthenticatedCourtRouteImport } from './routes/_authenticated/court'
 import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
+import { Route as AuthenticatedGallaRouteImport } from './routes/_authenticated/galla'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 
@@ -31,6 +34,16 @@ const AuthenticatedAddRoute = AuthenticatedAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChoresRoute = AuthenticatedChoresRouteImport.update({
+  id: '/chores',
+  path: '/chores',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCourtRoute = AuthenticatedCourtRouteImport.update({
   id: '/court',
   path: '/court',
@@ -39,6 +52,11 @@ const AuthenticatedCourtRoute = AuthenticatedCourtRouteImport.update({
 const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGallaRoute = AuthenticatedGallaRouteImport.update({
+  id: '/galla',
+  path: '/galla',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
@@ -56,16 +74,22 @@ const AuthenticatedLeaderboardRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AuthenticatedAddRoute
+  '/chat': typeof AuthenticatedChatRoute
+  '/chores': typeof AuthenticatedChoresRoute
   '/court': typeof AuthenticatedCourtRoute
   '/friends': typeof AuthenticatedFriendsRoute
+  '/galla': typeof AuthenticatedGallaRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AuthenticatedAddRoute
+  '/chat': typeof AuthenticatedChatRoute
+  '/chores': typeof AuthenticatedChoresRoute
   '/court': typeof AuthenticatedCourtRoute
   '/friends': typeof AuthenticatedFriendsRoute
+  '/galla': typeof AuthenticatedGallaRoute
   '/home': typeof AuthenticatedHomeRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
 }
@@ -74,23 +98,47 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/add': typeof AuthenticatedAddRoute
+  '/_authenticated/chat': typeof AuthenticatedChatRoute
+  '/_authenticated/chores': typeof AuthenticatedChoresRoute
   '/_authenticated/court': typeof AuthenticatedCourtRoute
   '/_authenticated/friends': typeof AuthenticatedFriendsRoute
+  '/_authenticated/galla': typeof AuthenticatedGallaRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/court' | '/friends' | '/home' | '/leaderboard'
+  fullPaths:
+    | '/'
+    | '/add'
+    | '/chat'
+    | '/chores'
+    | '/court'
+    | '/friends'
+    | '/galla'
+    | '/home'
+    | '/leaderboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/court' | '/friends' | '/home' | '/leaderboard'
+  to:
+    | '/'
+    | '/add'
+    | '/chat'
+    | '/chores'
+    | '/court'
+    | '/friends'
+    | '/galla'
+    | '/home'
+    | '/leaderboard'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/add'
+    | '/_authenticated/chat'
+    | '/_authenticated/chores'
     | '/_authenticated/court'
     | '/_authenticated/friends'
+    | '/_authenticated/galla'
     | '/_authenticated/home'
     | '/_authenticated/leaderboard'
   fileRoutesById: FileRoutesById
@@ -123,6 +171,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAddRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chores': {
+      id: '/_authenticated/chores'
+      path: '/chores'
+      fullPath: '/chores'
+      preLoaderRoute: typeof AuthenticatedChoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/court': {
       id: '/_authenticated/court'
       path: '/court'
@@ -135,6 +197,13 @@ declare module '@tanstack/react-router' {
       path: '/friends'
       fullPath: '/friends'
       preLoaderRoute: typeof AuthenticatedFriendsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/galla': {
+      id: '/_authenticated/galla'
+      path: '/galla'
+      fullPath: '/galla'
+      preLoaderRoute: typeof AuthenticatedGallaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
@@ -156,16 +225,22 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAddRoute: typeof AuthenticatedAddRoute
+  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
+  AuthenticatedChoresRoute: typeof AuthenticatedChoresRoute
   AuthenticatedCourtRoute: typeof AuthenticatedCourtRoute
   AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
+  AuthenticatedGallaRoute: typeof AuthenticatedGallaRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAddRoute: AuthenticatedAddRoute,
+  AuthenticatedChatRoute: AuthenticatedChatRoute,
+  AuthenticatedChoresRoute: AuthenticatedChoresRoute,
   AuthenticatedCourtRoute: AuthenticatedCourtRoute,
   AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
+  AuthenticatedGallaRoute: AuthenticatedGallaRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
 }

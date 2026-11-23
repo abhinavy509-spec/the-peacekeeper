@@ -11,7 +11,10 @@ export const Route = createFileRoute("/_authenticated/leaderboard")({
   head: () => ({
     meta: [
       { title: "Tier List — The Peacekeeper" },
-      { name: "description", content: "Hostel tier list: who owes you the most, and who you owe the most." },
+      {
+        name: "description",
+        content: "Hostel tier list: who owes you the most, and who you owe the most.",
+      },
       { property: "og:title", content: "Tier List — The Peacekeeper" },
       { property: "og:description", content: "Certified Kanjoos se Ambani of the Hostel tak." },
     ],
@@ -107,18 +110,31 @@ function LeaderboardPage() {
       {view === "cibil" && friends.length > 0 ? (
         <CibilBoard
           rows={friends
-            .map((f) => ({ friend: f, ...cibilScore(entries.filter((e) => e.friend_id === f.id), "they_owe") }))
+            .map((f) => ({
+              friend: f,
+              ...cibilScore(
+                entries.filter((e) => e.friend_id === f.id),
+                "they_owe",
+              ),
+            }))
             .sort((a, b) => b.score - a.score)}
         />
       ) : friends.length === 0 ? (
-        <EmptyState sticker="🏟️" title="Stadium khaali hai" sub="Dost add karo aur hisaab likho, tab ranking banegi." />
+        <EmptyState
+          sticker="🏟️"
+          title="Stadium khaali hai"
+          sub="Dost add karo aur hisaab likho, tab ranking banegi."
+        />
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           <div className="sticker-lg overflow-hidden">
             {TIERS.map((tier) => {
               const people = rows.filter((r) => tierFor(r.amount, max) === tier);
               return (
-                <div key={tier} className="grid grid-cols-[92px_1fr] border-b-2 border-ink last:border-b-0">
+                <div
+                  key={tier}
+                  className="grid grid-cols-[92px_1fr] border-b-2 border-ink last:border-b-0"
+                >
                   <div
                     className={cn(
                       "flex flex-col items-center justify-center border-r-2 border-ink p-2 text-center",
@@ -126,11 +142,15 @@ function LeaderboardPage() {
                     )}
                   >
                     <span className="font-display text-4xl font-extrabold text-ink">{tier}</span>
-                    <span className="text-[10px] font-bold leading-tight text-ink">{LABELS[view === "lent" ? "lent" : "owes"][tier]}</span>
+                    <span className="text-[10px] font-bold leading-tight text-ink">
+                      {LABELS[view === "lent" ? "lent" : "owes"][tier]}
+                    </span>
                   </div>
                   <div className="flex min-h-[92px] flex-wrap items-center gap-2 p-3">
                     {people.length === 0 ? (
-                      <span className="font-hand text-lg text-muted-foreground">yahan koi nahi… abhi tak 👀</span>
+                      <span className="font-hand text-lg text-muted-foreground">
+                        yahan koi nahi… abhi tak 👀
+                      </span>
                     ) : (
                       people.map(({ friend, amount }) => (
                         <div
@@ -139,7 +159,9 @@ function LeaderboardPage() {
                         >
                           <span className="text-2xl">{friend.emoji}</span>
                           <span>
-                            <span className="block text-sm font-bold leading-tight">{friend.name}</span>
+                            <span className="block text-sm font-bold leading-tight">
+                              {friend.name}
+                            </span>
                             {amount > 0 && (
                               <span className="block text-xs font-semibold text-muted-foreground">
                                 {formatINR(amount)}
@@ -163,7 +185,11 @@ function LeaderboardPage() {
               <EmptyState
                 sticker={view === "owes" ? "😇" : "🕊️"}
                 title={view === "owes" ? "Koi kuch nahi deta tumhe" : "Tum kisi ke karzdaar nahi"}
-                sub={view === "owes" ? "Ya toh sab imaandaar hai, ya tum dete hi nahi 😂" : "Bilkul clean record. Respect 🫡"}
+                sub={
+                  view === "owes"
+                    ? "Ya toh sab imaandaar hai, ya tum dete hi nahi 😂"
+                    : "Bilkul clean record. Respect 🫡"
+                }
               />
             ) : (
               <ol className="space-y-3">
@@ -174,7 +200,12 @@ function LeaderboardPage() {
                     </span>
                     <span className="text-2xl">{r.friend.emoji}</span>
                     <span className="flex-1 font-bold">{r.friend.name}</span>
-                    <span className={cn("font-display text-lg font-extrabold", view === "owes" ? "text-gain" : "text-loss")}>
+                    <span
+                      className={cn(
+                        "font-display text-lg font-extrabold",
+                        view === "owes" ? "text-gain" : "text-loss",
+                      )}
+                    >
                       {formatINR(r.amount)}
                     </span>
                   </li>
@@ -191,7 +222,11 @@ function LeaderboardPage() {
 function CibilBoard({
   rows,
 }: {
-  rows: Array<{ friend: { id: string; name: string; emoji: string }; score: number; badge: string }>;
+  rows: Array<{
+    friend: { id: string; name: string; emoji: string };
+    score: number;
+    badge: string;
+  }>;
 }) {
   return (
     <div className="sticker-lg p-6">
@@ -205,13 +240,20 @@ function CibilBoard({
             <span className="text-3xl">{r.friend.emoji}</span>
             <div>
               <p className="font-bold">
-                {r.friend.name} <span className="text-xs font-semibold text-muted-foreground">· {r.badge}</span>
+                {r.friend.name}{" "}
+                <span className="text-xs font-semibold text-muted-foreground">· {r.badge}</span>
               </p>
               <div className="mt-1 h-3 overflow-hidden rounded-full border-2 border-ink bg-muted">
                 <div
                   className={cn(
                     "h-full",
-                    r.score >= 800 ? "bg-gain" : r.score >= 650 ? "bg-tier-c" : r.score >= 500 ? "bg-secondary" : "bg-primary",
+                    r.score >= 800
+                      ? "bg-gain"
+                      : r.score >= 650
+                        ? "bg-tier-c"
+                        : r.score >= 500
+                          ? "bg-secondary"
+                          : "bg-primary",
                   )}
                   style={{ width: `${((r.score - 300) / 600) * 100}%` }}
                 />

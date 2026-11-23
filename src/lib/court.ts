@@ -3,9 +3,19 @@ import { formatINR } from "./money";
 export type Tone = "chacha" | "bestie" | "service" | "warden";
 
 export const TONES: Array<{ id: Tone; label: string; emoji: string; blurb: string }> = [
-  { id: "chacha", label: "Kanpuriya Chacha", emoji: "👴🏽", blurb: "Gyaan + drama, full Kanpur style" },
+  {
+    id: "chacha",
+    label: "Kanpuriya Chacha",
+    emoji: "👴🏽",
+    blurb: "Gyaan + drama, full Kanpur style",
+  },
   { id: "bestie", label: "Toxic Bestie", emoji: "💅", blurb: "Just checking… but louder" },
-  { id: "service", label: "Service Center Wale", emoji: "🎧", blurb: "Formal, polite, thoda creepy" },
+  {
+    id: "service",
+    label: "Service Center Wale",
+    emoji: "🎧",
+    blurb: "Formal, polite, thoda creepy",
+  },
   { id: "warden", label: "Strict Warden", emoji: "👮🏽", blurb: "Clear. Firm. No loopholes." },
 ];
 

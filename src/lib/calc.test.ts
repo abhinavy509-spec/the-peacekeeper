@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { initialCalc, pressDigit, pressEquals, pressOp, shuffledDigits, type CalcState, type Op } from "./calc";
+import {
+  initialCalc,
+  pressDigit,
+  pressEquals,
+  pressOp,
+  shuffledDigits,
+  type CalcState,
+  type Op,
+} from "./calc";
 import { cartNote, cartTotal, DEFAULT_PRICES, mergePrices } from "./prices";
 
 const run = (keys: string[]): CalcState =>
@@ -30,7 +38,16 @@ describe("rate list", () => {
     expect(DEFAULT_PRICES.find((p) => p.name === "Chai")?.price).toBe(10);
   });
   it("user price overrides the default", () => {
-    const merged = mergePrices([{ item_key: "basics:chai", name: "Chai", emoji: "☕", category: "basics", price: 12, hidden: false }]);
+    const merged = mergePrices([
+      {
+        item_key: "basics:chai",
+        name: "Chai",
+        emoji: "☕",
+        category: "basics",
+        price: 12,
+        hidden: false,
+      },
+    ]);
     expect(merged.find((p) => p.key === "basics:chai")?.price).toBe(12);
   });
   it("cart total and note", () => {

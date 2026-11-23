@@ -18,7 +18,15 @@ const LEVELS = [
   { max: 10, label: "Pure Bollywood script 🎬" },
 ];
 
-export function BullshitMeter({ friend, amount, tone }: { friend: Friend | null; amount: number; tone: Tone }) {
+export function BullshitMeter({
+  friend,
+  amount,
+  tone,
+}: {
+  friend: Friend | null;
+  amount: number;
+  tone: Tone;
+}) {
   const rate = useServerFn(rateExcuse);
   const [excuse, setExcuse] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,7 +38,14 @@ export function BullshitMeter({ friend, amount, tone }: { friend: Friend | null;
     setBusy(true);
     setV(null);
     try {
-      const res = await rate({ data: { excuse: excuse.trim(), friendName: friend.name, amount: amount > 0 ? amount : 0, judge: tone } });
+      const res = await rate({
+        data: {
+          excuse: excuse.trim(),
+          friendName: friend.name,
+          amount: amount > 0 ? amount : 0,
+          judge: tone,
+        },
+      });
       setV(res);
     } catch {
       toast.error("Judge sahab chai pe gaye hai ☕ Thodi der mein try karo.");
@@ -51,11 +66,13 @@ export function BullshitMeter({ friend, amount, tone }: { friend: Friend | null;
   return (
     <section className="sticker-lg mt-10 grid gap-6 p-6 md:grid-cols-[1fr_320px] md:p-8">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Bullshit-o-Meter</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+          Bullshit-o-Meter
+        </p>
         <h2 className="mt-1 text-3xl font-extrabold">Bahana sunao, court decide karega 🧐</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {friend ? `${friend.name} ne kya excuse diya?` : "Upar se mujrim chuno."} Judge: {judgeInfo?.emoji} {judgeInfo?.label}.
-          AI 1–10 rate karega aur friendly saza dega.
+          {friend ? `${friend.name} ne kya excuse diya?` : "Upar se mujrim chuno."} Judge:{" "}
+          {judgeInfo?.emoji} {judgeInfo?.label}. AI 1–10 rate karega aur friendly saza dega.
         </p>
         <Textarea
           className="mt-4 min-h-24 rounded-xl border-2 border-ink bg-card shadow-sticker-sm"
@@ -82,21 +99,50 @@ export function BullshitMeter({ friend, amount, tone }: { friend: Friend | null;
       </div>
 
       <div className="flex flex-col items-center rounded-2xl border-2 border-ink bg-ink p-5 text-ink-foreground">
-        <svg viewBox="0 0 200 120" className="w-full max-w-[260px]" role="img" aria-label={`Bullshit score ${score} out of 10`}>
+        <svg
+          viewBox="0 0 200 120"
+          className="w-full max-w-[260px]"
+          role="img"
+          aria-label={`Bullshit score ${score} out of 10`}
+        >
           <path d="M20 100 A80 80 0 0 1 73 25" fill="none" stroke="var(--gain)" strokeWidth="18" />
-          <path d="M73 25 A80 80 0 0 1 127 25" fill="none" stroke="var(--secondary)" strokeWidth="18" />
-          <path d="M127 25 A80 80 0 0 1 180 100" fill="none" stroke="var(--primary)" strokeWidth="18" />
+          <path
+            d="M73 25 A80 80 0 0 1 127 25"
+            fill="none"
+            stroke="var(--secondary)"
+            strokeWidth="18"
+          />
+          <path
+            d="M127 25 A80 80 0 0 1 180 100"
+            fill="none"
+            stroke="var(--primary)"
+            strokeWidth="18"
+          />
           <g
-            style={{ transform: `rotate(${angle}deg)`, transformOrigin: "100px 100px", transition: "transform 900ms cubic-bezier(0.34,1.56,0.64,1)" }}
+            style={{
+              transform: `rotate(${angle}deg)`,
+              transformOrigin: "100px 100px",
+              transition: "transform 900ms cubic-bezier(0.34,1.56,0.64,1)",
+            }}
           >
-            <line x1="100" y1="100" x2="100" y2="32" stroke="var(--ink-foreground)" strokeWidth="5" strokeLinecap="round" />
+            <line
+              x1="100"
+              y1="100"
+              x2="100"
+              y2="32"
+              stroke="var(--ink-foreground)"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
           </g>
           <circle cx="100" cy="100" r="9" fill="var(--ink-foreground)" />
         </svg>
         <p className={cn("mt-1 font-display text-5xl font-extrabold", busy && "animate-shake")}>
           {v ? `${v.score}/10` : busy ? "…" : "?/10"}
         </p>
-        <p className="text-sm font-bold text-secondary">{v ? level.label : "Bahana daalo, meter ghoomega"}</p>
+        <p className="text-sm font-bold text-secondary">
+          {v ? level.label : "Bahana daalo, meter ghoomega"}
+        </p>
       </div>
 
       {v && (
@@ -107,12 +153,18 @@ export function BullshitMeter({ friend, amount, tone }: { friend: Friend | null;
             </p>
             <p className="mt-2 font-display text-xl font-extrabold">Saza: {v.penalty}</p>
             {v.source === "local" && (
-              <p className="mt-1 text-xs text-muted-foreground">(AI judge busy tha, ye offline faisla hai)</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                (AI judge busy tha, ye offline faisla hai)
+              </p>
             )}
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Button asChild variant="whatsapp">
-              <a href={whatsappLink(friend?.phone ?? "", shareText)} target="_blank" rel="noreferrer">
+              <a
+                href={whatsappLink(friend?.phone ?? "", shareText)}
+                target="_blank"
+                rel="noreferrer"
+              >
                 💬 Faisla WhatsApp karo
               </a>
             </Button>

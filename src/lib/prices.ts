@@ -32,7 +32,10 @@ const d = (category: string, emoji: string, list: Array<[string, number]>): Pric
   }));
 
 export const DEFAULT_PRICES: PriceItem[] = [
-  ...d("basics", "🖨️", [["Photocopy", 5], ["Printout (colour)", 10]]),
+  ...d("basics", "🖨️", [
+    ["Photocopy", 5],
+    ["Printout (colour)", 10],
+  ]),
   ...d("basics", "☕", [["Chai", 10]]),
   ...d("basics", "🥟", [["Samosa", 15]]),
   ...d("basics", "🍪", [["Parle-G", 10]]),
@@ -41,7 +44,10 @@ export const DEFAULT_PRICES: PriceItem[] = [
   ...d("basics", "🍜", [["Maggi packet", 15]]),
   ...d("basics", "🛺", [["Auto ride", 20]]),
   ...d("chai", "🫖", [["Kulhad chai", 20]]),
-  ...d("chai", "🍞", [["Bun butter", 30], ["Bun butter with cheese", 45]]),
+  ...d("chai", "🍞", [
+    ["Bun butter", 30],
+    ["Bun butter with cheese", 45],
+  ]),
   ...d("maggi", "🍜", [
     ["Veg paneer maggi", 69],
     ["Butter maggi", 79],
@@ -73,7 +79,10 @@ export const DEFAULT_PRICES: PriceItem[] = [
     ["Peri peri fry momos", 79],
     ["Peri peri kurkure momos", 89],
   ]),
-  ...d("momos", "🌯", [["Veg spring roll (2 pcs)", 89], ["Veg kurkure roll (2 pcs)", 119]]),
+  ...d("momos", "🌯", [
+    ["Veg spring roll (2 pcs)", 89],
+    ["Veg kurkure roll (2 pcs)", 119],
+  ]),
   ...d("fries", "🍟", [
     ["Masala fries", 49],
     ["Peri peri fries", 89],
@@ -81,16 +90,31 @@ export const DEFAULT_PRICES: PriceItem[] = [
     ["Peri peri cheese fries", 109],
     ["Lemon chilli cheese fries", 119],
   ]),
-  ...d("fries", "🧀", [["Crispy cheese ball", 99], ["Lemon chilli cheese ball", 119]]),
-  ...d("pasta", "🍝", [["White sauce pasta", 119], ["Pink sauce pasta", 129]]),
-  ...d("coffee", "☕", [["Hot coffee", 35], ["Hazelnut coffee", 49], ["Butter coffee", 49]]),
+  ...d("fries", "🧀", [
+    ["Crispy cheese ball", 99],
+    ["Lemon chilli cheese ball", 119],
+  ]),
+  ...d("pasta", "🍝", [
+    ["White sauce pasta", 119],
+    ["Pink sauce pasta", 129],
+  ]),
+  ...d("coffee", "☕", [
+    ["Hot coffee", 35],
+    ["Hazelnut coffee", 49],
+    ["Butter coffee", 49],
+  ]),
   ...d("coffee", "🧋", [
     ["Cold coffee", 69],
     ["Hazelnut cold coffee", 89],
     ["Caramel cold coffee", 89],
     ["Cold coffee with ice cream", 89],
   ]),
-  ...d("shakes", "🥤", [["KitKat shake", 119], ["Oreo shake", 119], ["Brownie shake", 149], ["Lotus biscoff shake", 149]]),
+  ...d("shakes", "🥤", [
+    ["KitKat shake", 119],
+    ["Oreo shake", 119],
+    ["Brownie shake", 149],
+    ["Lotus biscoff shake", 149],
+  ]),
 ];
 
 export interface PriceOverride {
@@ -103,7 +127,9 @@ export interface PriceOverride {
 }
 
 /** Defaults with the user's overrides applied; hidden items removed; custom items appended. */
-export function mergePrices(overrides: PriceOverride[]): Array<PriceItem & { edited: boolean; custom: boolean }> {
+export function mergePrices(
+  overrides: PriceOverride[],
+): Array<PriceItem & { edited: boolean; custom: boolean }> {
   const byKey = new Map(overrides.map((o) => [o.item_key, o]));
   const out: Array<PriceItem & { edited: boolean; custom: boolean }> = [];
   for (const def of DEFAULT_PRICES) {
@@ -117,7 +143,15 @@ export function mergePrices(overrides: PriceOverride[]): Array<PriceItem & { edi
   }
   for (const o of overrides) {
     if (!o.item_key.startsWith("custom:") || o.hidden) continue;
-    out.push({ key: o.item_key, name: o.name, emoji: o.emoji, category: "custom", price: Number(o.price), edited: false, custom: true });
+    out.push({
+      key: o.item_key,
+      name: o.name,
+      emoji: o.emoji,
+      category: "custom",
+      price: Number(o.price),
+      edited: false,
+      custom: true,
+    });
   }
   return out;
 }

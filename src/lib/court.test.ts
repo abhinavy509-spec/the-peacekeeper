@@ -21,7 +21,9 @@ describe("whatsapp", () => {
     expect(normalizePhone("123")).toBe("");
   });
   it("builds a wa.me link with the message", () => {
-    expect(whatsappLink("9876543210", "hi ₹5")).toBe("https://wa.me/919876543210?text=hi%20%E2%82%B95");
+    expect(whatsappLink("9876543210", "hi ₹5")).toBe(
+      "https://wa.me/919876543210?text=hi%20%E2%82%B95",
+    );
   });
 });
 

@@ -25,7 +25,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "The Peacekeeper — Because roommate drama needs a judge" },
       {
         property: "og:description",
-        content: "Track who owes what in your hostel, split bills, and send funny Hinglish reminders on WhatsApp.",
+        content:
+          "Track who owes what in your hostel, split bills, and send funny Hinglish reminders on WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -105,11 +106,13 @@ function LoginPage() {
             The
             <br />
             Peace<span className="text-primary">keeper</span>
-            <span className="ml-3 inline-block align-middle text-5xl animate-wiggle md:text-6xl">⚖️</span>
+            <span className="ml-3 inline-block align-middle text-5xl animate-wiggle md:text-6xl">
+              ⚖️
+            </span>
           </h1>
           <p className="mt-5 max-w-md text-lg">
-            Because roommate drama needs a judge. Hostel ke saare udhaar, dues aur splits — ek jagah,
-            bina "bhai paise de de 😭" wale awkward moments ke.
+            Because roommate drama needs a judge. Hostel ke saare udhaar, dues aur splits — ek
+            jagah, bina "bhai paise de de 😭" wale awkward moments ke.
           </p>
 
           <div className="mt-8 max-w-md">
@@ -132,7 +135,9 @@ function LoginPage() {
                 onClick={() => setMode(m)}
                 className={cn(
                   "rounded-lg py-2 text-sm font-bold transition-colors",
-                  mode === m ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:text-foreground",
+                  mode === m
+                    ? "bg-ink text-ink-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {m === "signup" ? "Naya hoon 🐣" : "Purana khiladi 😎"}
@@ -172,7 +177,11 @@ function LoginPage() {
               />
             </div>
             <Button type="submit" size="lg" className="w-full" disabled={busy}>
-              {busy ? "Ruko zara… ⏳" : mode === "signup" ? "Chalo shuru karein 🚀" : "Andar aane do 🚪"}
+              {busy
+                ? "Ruko zara… ⏳"
+                : mode === "signup"
+                  ? "Chalo shuru karein 🚀"
+                  : "Andar aane do 🚪"}
             </Button>
           </form>
           <p className="mt-5 text-center text-xs text-muted-foreground">

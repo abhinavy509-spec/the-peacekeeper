@@ -6,7 +6,13 @@ import { EyeOff, RotateCcw, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CATEGORIES, DEFAULT_PRICES, mergePrices } from "@/lib/prices";
 import type { PriceRow } from "@/lib/data";
 
@@ -22,7 +28,14 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
   const refresh = () => qc.invalidateQueries({ queryKey: ["price_items"] });
 
   const upsert = useMutation({
-    mutationFn: async (row: { item_key: string; name: string; emoji: string; category: string; price: number; hidden?: boolean }) => {
+    mutationFn: async (row: {
+      item_key: string;
+      name: string;
+      emoji: string;
+      category: string;
+      price: number;
+      hidden?: boolean;
+    }) => {
       const { error } = await supabase
         .from("price_items")
         .upsert({ hidden: false, ...row }, { onConflict: "owner_id,item_key" });
@@ -64,9 +77,16 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
   function addCustom(e: React.FormEvent): void {
     e.preventDefault();
     const price = Number(newPrice);
-    if (newName.trim().length < 2 || !(price > 0)) return void toast.error("Naam aur price dono daalo 🙄");
+    if (newName.trim().length < 2 || !(price > 0))
+      return void toast.error("Naam aur price dono daalo 🙄");
     upsert.mutate(
-      { item_key: `custom:${crypto.randomUUID()}`, name: newName.trim(), emoji: newEmoji || "🧾", category: "custom", price },
+      {
+        item_key: `custom:${crypto.randomUUID()}`,
+        name: newName.trim(),
+        emoji: newEmoji || "🧾",
+        category: "custom",
+        price,
+      },
       {
         onSuccess: () => {
           toast.success(`${newName.trim()} rate list mein add ⭐`);
@@ -80,21 +100,46 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">✏️ Rates edit karo</Button>
+        <Button variant="outline" size="sm">
+          ✏️ Rates edit karo
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto border-2 border-ink shadow-sticker-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl font-extrabold">Rate list 📋</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Canteen ne rate badha diya? Yahan badlo. Price box se bahar click karte hi save ho jaata hai.
+            Canteen ne rate badha diya? Yahan badlo. Price box se bahar click karte hi save ho jaata
+            hai.
           </p>
         </DialogHeader>
 
-        <form onSubmit={addCustom} className="grid grid-cols-[56px_1fr_100px_auto] gap-2 rounded-xl border-2 border-dashed border-ink/50 p-3">
-          <Input aria-label="Emoji" value={newEmoji} onChange={(e) => setNewEmoji(e.target.value)} className="text-center" />
-          <Input aria-label="Item ka naam" placeholder="e.g. Bread omelette" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Input aria-label="Price" type="number" min="0" placeholder="₹" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
-          <Button type="submit" size="default">➕</Button>
+        <form
+          onSubmit={addCustom}
+          className="grid grid-cols-[56px_1fr_100px_auto] gap-2 rounded-xl border-2 border-dashed border-ink/50 p-3"
+        >
+          <Input
+            aria-label="Emoji"
+            value={newEmoji}
+            onChange={(e) => setNewEmoji(e.target.value)}
+            className="text-center"
+          />
+          <Input
+            aria-label="Item ka naam"
+            placeholder="e.g. Bread omelette"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
+          <Input
+            aria-label="Price"
+            type="number"
+            min="0"
+            placeholder="₹"
+            value={newPrice}
+            onChange={(e) => setNewPrice(e.target.value)}
+          />
+          <Button type="submit" size="default">
+            ➕
+          </Button>
         </form>
 
         {hiddenCount > 0 && (
@@ -118,7 +163,9 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
                       <span className="w-7 text-center text-xl">{it.emoji}</span>
                       <span className="flex-1 truncate text-sm font-semibold">
                         {it.name}
-                        {it.edited && <span className="ml-1 text-[10px] font-bold text-primary">(edited)</span>}
+                        {it.edited && (
+                          <span className="ml-1 text-[10px] font-bold text-primary">(edited)</span>
+                        )}
                       </span>
                       <Input
                         key={`${it.key}-${it.price}`}
@@ -130,12 +177,22 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
                         className="h-9 w-24 text-right"
                       />
                       {it.edited && (
-                        <Button variant="ghost" size="icon" aria-label={`Reset ${it.name}`} onClick={() => reset.mutate(it.key)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Reset ${it.name}`}
+                          onClick={() => reset.mutate(it.key)}
+                        >
                           <RotateCcw />
                         </Button>
                       )}
                       {it.custom ? (
-                        <Button variant="ghost" size="icon" aria-label={`Delete ${it.name}`} onClick={() => reset.mutate(it.key)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Delete ${it.name}`}
+                          onClick={() => reset.mutate(it.key)}
+                        >
                           <Trash2 />
                         </Button>
                       ) : (
@@ -145,7 +202,14 @@ export function RateListDialog({ rows }: { rows: PriceRow[] }) {
                           aria-label={`Hide ${it.name}`}
                           onClick={() => {
                             const def = DEFAULT_PRICES.find((d) => d.key === it.key)!;
-                            upsert.mutate({ item_key: it.key, name: def.name, emoji: def.emoji, category: def.category, price: it.price, hidden: true });
+                            upsert.mutate({
+                              item_key: it.key,
+                              name: def.name,
+                              emoji: def.emoji,
+                              category: def.category,
+                              price: it.price,
+                              hidden: true,
+                            });
                           }}
                         >
                           <EyeOff />

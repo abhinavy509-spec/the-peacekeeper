@@ -2,13 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Dices } from "lucide-react";
+import { Copy, Dices, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateAiCourtNotice } from "@/lib/excuse.functions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState, PageHeader } from "@/components/PageHeader";
-import { entriesQuery, friendsQuery } from "@/lib/data";
+import { entriesQuery, friendsQuery, profileQuery } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 import { formatINR, netByFriend } from "@/lib/money";
 import { generateMessage, normalizePhone, TONES, whatsappLink, type Tone } from "@/lib/court";
 import { cn } from "@/lib/utils";
@@ -21,15 +24,22 @@ export const Route = createFileRoute("/_authenticated/court")({
   head: () => ({
     meta: [
       { title: "Roommate Court — The Peacekeeper" },
-      { name: "description", content: "Send funny Hinglish WhatsApp reminders to friends who owe you." },
+      {
+        name: "description",
+        content: "Send funny Hinglish WhatsApp reminders to friends who owe you.",
+      },
       { property: "og:title", content: "Roommate Court — The Peacekeeper" },
-      { property: "og:description", content: "Excuses meet their match. Kanpuriya Chacha is watching." },
+      {
+        property: "og:description",
+        content: "Excuses meet their match. Kanpuriya Chacha is watching.",
+      },
     ],
   }),
   loader: ({ context }) =>
     Promise.all([
       context.queryClient.ensureQueryData(friendsQuery),
       context.queryClient.ensureQueryData(entriesQuery),
+      context.queryClient.ensureQueryData(profileQuery),
     ]),
   component: CourtPage,
 });
@@ -38,12 +48,14 @@ function CourtPage() {
   const search = Route.useSearch();
   const { data: friends } = useSuspenseQuery(friendsQuery);
   const { data: entries } = useSuspenseQuery(entriesQuery);
+  const { data: profile } = useSuspenseQuery(profileQuery);
   const net = netByFriend(entries);
 
   const [friendId, setFriendId] = useState<string | null>(search.friend ?? null);
   const [tone, setTone] = useState<Tone>("chacha");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
+  const [isSendingInApp, setIsSendingInApp] = useState(false);
 
   const friend = friends.find((f) => f.id === friendId) ?? null;
   const owed = friend ? Math.max(net[friend.id] ?? 0, 0) : 0;
@@ -61,13 +73,67 @@ function CourtPage() {
 
   useEffect(() => calcBus.subscribe((n) => setAmount(String(n))), []);
 
-  const reroll = () => friend && amt > 0 && setMessage((m) => generateMessage(tone, friend.name, amt, Math.random, m));
+  const generateNotice = useServerFn(generateAiCourtNotice);
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+
+  const reroll = () =>
+    friend && amt > 0 && setMessage((m) => generateMessage(tone, friend.name, amt, Math.random, m));
+
+  const handleAiGenerate = async () => {
+    if (!friend || amt <= 0) return;
+    setIsAiGenerating(true);
+    try {
+      const res = await generateNotice({
+        data: { friendName: friend.name, amount: amt, judge: tone },
+      });
+      if (res.message) {
+        setMessage(res.message);
+        toast.success("AI ne notice taiyyar kar diya! ✨");
+      } else {
+        reroll();
+        toast("AI key set nahi hai, template use kiya gaya 👍");
+      }
+    } catch {
+      reroll();
+    } finally {
+      setIsAiGenerating(false);
+    }
+  };
+
+  const sendInAppNotice = async () => {
+    if (!profile || !friend || !message) return;
+    if (!friend.friend_user_id) {
+      return toast.error(
+        `${friend.name} ka Peacekeeper username link nahi hai! Pehle 'Dost' page par unka @ID link karo.`,
+      );
+    }
+    setIsSendingInApp(true);
+    try {
+      const { error } = await supabase.from("notices").insert({
+        sender_id: profile.id,
+        receiver_id: friend.friend_user_id,
+        type: "court_notice",
+        amount: amt,
+        message,
+      });
+      if (error) throw error;
+      toast.success("Court Notice in-app bhej diya gaya! ⚖️ Chat mein dekhein");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Notice send failed");
+    } finally {
+      setIsSendingInApp(false);
+    }
+  };
 
   if (friends.length === 0) {
     return (
       <div>
         <PageHeader kicker="Court" title="Roommate Court" sticker="⚖️" />
-        <EmptyState sticker="👨‍⚖️" title="Court mein koi mujrim nahi" sub="Pehle dost add karo, phir case daalo.">
+        <EmptyState
+          sticker="👨‍⚖️"
+          title="Court mein koi mujrim nahi"
+          sub="Pehle dost add karo, phir case daalo."
+        >
           <Button asChild>
             <Link to="/friends">👯 Dost add karo</Link>
           </Button>
@@ -102,7 +168,9 @@ function CourtPage() {
                     onClick={() => setFriendId(f.id)}
                     className={cn(
                       "flex items-center gap-2 rounded-xl border-2 border-ink px-3 py-2 text-left hover:animate-shake",
-                      friendId === f.id ? "bg-ink text-ink-foreground shadow-sticker-sm" : "bg-card",
+                      friendId === f.id
+                        ? "bg-ink text-ink-foreground shadow-sticker-sm"
+                        : "bg-card",
                     )}
                   >
                     <span className="text-xl">{f.emoji}</span>
@@ -132,7 +200,9 @@ function CourtPage() {
                   )}
                 >
                   <span className="text-4xl">{t.emoji}</span>
-                  <span className="mt-2 block font-display font-extrabold leading-tight">{t.label}</span>
+                  <span className="mt-2 block font-display font-extrabold leading-tight">
+                    {t.label}
+                  </span>
                   <span className="block text-xs text-muted-foreground">{t.blurb}</span>
                 </button>
               ))}
@@ -169,7 +239,9 @@ function CourtPage() {
             {message ? (
               <div className="ml-auto max-w-[90%] animate-pop rounded-2xl rounded-br-sm border-2 border-ink bg-gain-soft p-4 shadow-sticker-sm">
                 <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{message}</p>
-                <p className="mt-2 text-right text-[10px] font-bold text-muted-foreground">✓✓ abhi</p>
+                <p className="mt-2 text-right text-[10px] font-bold text-muted-foreground">
+                  ✓✓ abhi
+                </p>
               </div>
             ) : (
               <div className="grid h-[200px] place-items-center text-center">
@@ -182,8 +254,17 @@ function CourtPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-3 border-t-2 border-ink p-4">
+            <Button
+              variant="outline"
+              onClick={handleAiGenerate}
+              disabled={!friend || amt <= 0 || isAiGenerating}
+              className="bg-primary/10 hover:bg-primary/20"
+            >
+              <Sparkles className={isAiGenerating ? "animate-spin" : "text-primary"} />
+              {isAiGenerating ? "AI likh raha hai..." : "AI Notice ✨"}
+            </Button>
             <Button variant="outline" onClick={reroll} disabled={!message}>
-              <Dices /> Naya message
+              <Dices /> Template
             </Button>
             <Button
               variant="outline"
@@ -195,13 +276,29 @@ function CourtPage() {
             >
               <Copy /> Copy
             </Button>
-            <Button asChild variant="whatsapp" className={cn("flex-1", !message && "pointer-events-none opacity-50")}>
+            {friend?.friend_user_id && (
+              <Button
+                variant="secondary"
+                disabled={!message || isSendingInApp}
+                onClick={sendInAppNotice}
+                className="font-bold border-2 border-ink shadow-sticker-sm"
+              >
+                📬 In-App Notice Bhejo
+              </Button>
+            )}
+            <Button
+              asChild
+              variant="whatsapp"
+              className={cn("flex-1", !message && "pointer-events-none opacity-50")}
+            >
               <a
                 href={message && friend ? whatsappLink(friend.phone, message) : "#"}
                 target="_blank"
                 rel="noreferrer"
                 aria-disabled={!message}
-                onClick={() => message && toast("Notice bhej diya gaya ⚖️ Ab dekhte hai kya bahana aata hai")}
+                onClick={() =>
+                  message && toast("Notice bhej diya gaya ⚖️ Ab dekhte hai kya bahana aata hai")
+                }
               >
                 💬 WhatsApp pe bhejo
               </a>
@@ -209,7 +306,8 @@ function CourtPage() {
           </div>
           {friend && !hasPhone && (
             <p className="border-t-2 border-dashed border-ink/40 px-4 py-3 text-xs text-muted-foreground">
-              ⚠️ {friend.name} ka number save nahi hai — WhatsApp khulega, contact tumhe khud chunna padega.
+              ⚠️ {friend.name} ka number save nahi hai — WhatsApp khulega, contact tumhe khud chunna
+              padega.
             </p>
           )}
         </section>

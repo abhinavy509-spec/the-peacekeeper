@@ -34,7 +34,11 @@ export function QuickAdd({
     );
   };
   const setQty = (key: string, qty: number) =>
-    onChange(qty <= 0 ? cart.filter((l) => l.key !== key) : cart.map((l) => (l.key === key ? { ...l, qty } : l)));
+    onChange(
+      qty <= 0
+        ? cart.filter((l) => l.key !== key)
+        : cart.map((l) => (l.key === key ? { ...l, qty } : l)),
+    );
   const setPrice = (key: string, price: number) =>
     onChange(cart.map((l) => (l.key === key ? { ...l, price: Math.max(0, price) } : l)));
 
@@ -43,7 +47,9 @@ export function QuickAdd({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-extrabold">Quick add 🛒</h2>
-          <p className="text-sm text-muted-foreground">Tap karo, bill khud banega. Price galat hai? Neeche edit karo.</p>
+          <p className="text-sm text-muted-foreground">
+            Tap karo, bill khud banega. Price galat hai? Neeche edit karo.
+          </p>
         </div>
         <RateListDialog rows={rows} />
       </div>
@@ -80,7 +86,9 @@ export function QuickAdd({
               <span className="text-2xl">{it.emoji}</span>
               <span className="min-w-0">
                 <span className="block truncate text-xs font-bold leading-tight">{it.name}</span>
-                <span className="block text-xs font-semibold text-muted-foreground">₹{it.price}</span>
+                <span className="block text-xs font-semibold text-muted-foreground">
+                  ₹{it.price}
+                </span>
               </span>
               {inCart && (
                 <span className="absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full border-2 border-ink bg-primary px-1 text-[11px] font-bold text-primary-foreground">
@@ -99,11 +107,21 @@ export function QuickAdd({
               <li key={l.key} className="flex items-center gap-2 text-sm">
                 <span className="text-xl">{l.emoji}</span>
                 <span className="min-w-0 flex-1 truncate font-bold">{l.name}</span>
-                <button type="button" aria-label="Kam karo" onClick={() => setQty(l.key, l.qty - 1)} className="grid h-7 w-7 place-items-center rounded-lg border-2 border-ink bg-card">
+                <button
+                  type="button"
+                  aria-label="Kam karo"
+                  onClick={() => setQty(l.key, l.qty - 1)}
+                  className="grid h-7 w-7 place-items-center rounded-lg border-2 border-ink bg-card"
+                >
                   <Minus className="h-3 w-3" />
                 </button>
                 <span className="w-5 text-center font-bold">{l.qty}</span>
-                <button type="button" aria-label="Zyada karo" onClick={() => setQty(l.key, l.qty + 1)} className="grid h-7 w-7 place-items-center rounded-lg border-2 border-ink bg-card">
+                <button
+                  type="button"
+                  aria-label="Zyada karo"
+                  onClick={() => setQty(l.key, l.qty + 1)}
+                  className="grid h-7 w-7 place-items-center rounded-lg border-2 border-ink bg-card"
+                >
                   <Plus className="h-3 w-3" />
                 </button>
                 <span className="text-muted-foreground">×</span>
@@ -115,18 +133,31 @@ export function QuickAdd({
                   onChange={(e) => setPrice(l.key, Number(e.target.value))}
                   className="h-8 w-20 text-right"
                 />
-                <span className="w-16 text-right font-display font-bold">{formatINR(l.qty * l.price)}</span>
-                <button type="button" aria-label={`Hatao ${l.name}`} onClick={() => setQty(l.key, 0)} className="text-muted-foreground">
+                <span className="w-16 text-right font-display font-bold">
+                  {formatINR(l.qty * l.price)}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Hatao ${l.name}`}
+                  onClick={() => setQty(l.key, 0)}
+                  className="text-muted-foreground"
+                >
                   <X className="h-4 w-4" />
                 </button>
               </li>
             ))}
           </ul>
           <div className="mt-3 flex items-center justify-between border-t-2 border-dashed border-ink/40 pt-2">
-            <button type="button" onClick={() => onChange([])} className="text-xs font-bold text-muted-foreground underline">
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="text-xs font-bold text-muted-foreground underline"
+            >
               Cart khaali karo
             </button>
-            <p className="font-display text-lg font-extrabold">Total: {formatINR(cartTotal(cart))}</p>
+            <p className="font-display text-lg font-extrabold">
+              Total: {formatINR(cartTotal(cart))}
+            </p>
           </div>
         </div>
       )}

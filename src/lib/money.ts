@@ -6,6 +6,7 @@ export interface EntryLike {
   direction: Direction | (string & {});
   amount: number | string;
   settled: boolean;
+  status?: string;
 }
 
 export function round2(n: number): number {
@@ -18,14 +19,25 @@ export function formatINR(n: number): string {
   return `₹${s}`;
 }
 
-/** Net balance per friend: positive = they owe you, negative = you owe them. Settled rows ignored. */
+/** Net balance per friend: positive = they owe you, negative = you owe them. Settled and disputed rows ignored. */
 export function netByFriend(entries: EntryLike[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const e of entries) {
-    if (e.settled) continue;
+    if (e.settled || e.status === "disputed") continue;
     const amt = Number(e.amount);
     const sign = e.direction === "they_owe" ? 1 : -1;
     out[e.friend_id] = round2((out[e.friend_id] ?? 0) + sign * amt);
+  }
+  return out;
+}
+
+/** Total disputed (frozen) amount per friend */
+export function disputedByFriend(entries: EntryLike[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const e of entries) {
+    if (e.status !== "disputed") continue;
+    const amt = Number(e.amount);
+    out[e.friend_id] = round2((out[e.friend_id] ?? 0) + amt);
   }
   return out;
 }
@@ -87,6 +99,7 @@ export interface CibilEntry {
   direction: Direction | (string & {});
   amount: number | string;
   settled: boolean;
+  status?: string;
   created_at: string;
 }
 
@@ -99,7 +112,8 @@ export interface Cibil {
  * Roommate CIBIL (300–900) for how reliably someone pays back.
  * `owedDirection` picks which rows count as "their" debts: "they_owe" for a friend, "i_owe" for you.
  * No such rows → 750 "Fresher". Otherwise start at 750, +/- up to 100 for settled ratio,
- * minus pending amount (0.4 per ₹, max 200) and age of oldest pending (5/day, max 150).
+ * minus pending amount (0.4 per ₹, max 200), age of oldest pending (5/day, max 150),
+ * and dispute penalty (40 per active dispute).
  */
 export function cibilScore(
   entries: CibilEntry[],
@@ -109,7 +123,8 @@ export function cibilScore(
   const rows = entries.filter((e) => e.direction === owedDirection);
   if (rows.length === 0) return { score: 750, badge: "Fresher 🐣" };
   const settled = rows.filter((e) => e.settled).length;
-  const pending = rows.filter((e) => !e.settled);
+  const pending = rows.filter((e) => !e.settled && e.status !== "disputed");
+  const disputed = rows.filter((e) => e.status === "disputed").length;
   const pendingAmt = pending.reduce((s, e) => s + Number(e.amount), 0);
   const oldest = pending.reduce(
     (m, e) => Math.min(m, new Date(e.created_at).getTime()),
@@ -119,6 +134,7 @@ export function cibilScore(
   let score = 750 + (settled / rows.length - 0.5) * 200;
   score -= Math.min(200, pendingAmt * 0.4);
   score -= Math.min(150, days * 5);
+  score -= disputed * 40; // Penalty for having unresolved disputes
   score = Math.round(Math.max(300, Math.min(900, score)));
   return { score, badge: cibilBadge(score) };
 }

@@ -17,7 +17,12 @@ import {
 } from "@/lib/calc";
 import { cn } from "@/lib/utils";
 
-const TROLLS = ["Keys bhaag gaye 🏃", "Dhoondo ab 😈", "Focus, bhai 🧐", "Hisaab itna easy nahi 🤪"];
+const TROLLS = [
+  "Keys bhaag gaye 🏃",
+  "Dhoondo ab 😈",
+  "Focus, bhai 🧐",
+  "Hisaab itna easy nahi 🤪",
+];
 
 // Floating calculator. The 1–9 keys reshuffle after every digit press — on purpose.
 export function Calculator() {
@@ -62,18 +67,30 @@ export function Calculator() {
             <span className="text-[11px] font-bold text-muted-foreground">{troll}</span>
           </div>
           <div className="mb-3 rounded-xl border-2 border-ink bg-ink px-3 py-2 text-right text-ink-foreground">
-            <p className="h-4 text-xs opacity-60">{s.acc !== null && s.op ? `${s.acc} ${s.op}` : ""}</p>
+            <p className="h-4 text-xs opacity-60">
+              {s.acc !== null && s.op ? `${s.acc} ${s.op}` : ""}
+            </p>
             <p className="truncate font-display text-3xl font-extrabold" aria-live="polite">
               {s.error ?? s.display}
             </p>
           </div>
           <div className="grid grid-cols-4 gap-2">
-            <Key onClick={() => setS(initialCalc)} className="bg-loss-soft">C</Key>
-            <Key onClick={() => setS((x) => pressBack(x))} aria-label="Backspace" className="bg-muted">
+            <Key onClick={() => setS(initialCalc)} className="bg-loss-soft">
+              C
+            </Key>
+            <Key
+              onClick={() => setS((x) => pressBack(x))}
+              aria-label="Backspace"
+              className="bg-muted"
+            >
               <Delete className="h-4 w-4" />
             </Key>
-            <Key onClick={() => op("÷")} className="bg-accent">÷</Key>
-            <Key onClick={() => op("×")} className="bg-accent">×</Key>
+            <Key onClick={() => op("÷")} className="bg-accent">
+              ÷
+            </Key>
+            <Key onClick={() => op("×")} className="bg-accent">
+              ×
+            </Key>
 
             <div className="col-span-3 grid grid-cols-3 gap-2">
               {digits.map((d) => (
@@ -81,13 +98,22 @@ export function Calculator() {
                   {d}
                 </Key>
               ))}
-              <Key onClick={() => digit("0")} className="col-span-2">0</Key>
+              <Key onClick={() => digit("0")} className="col-span-2">
+                0
+              </Key>
               <Key onClick={() => setS((x) => pressDot(x))}>.</Key>
             </div>
             <div className="grid grid-rows-4 gap-2">
-              <Key onClick={() => op("-")} className="bg-accent">−</Key>
-              <Key onClick={() => op("+")} className="bg-accent">+</Key>
-              <Key onClick={() => setS((x) => pressEquals(x))} className="row-span-2 bg-primary text-primary-foreground">
+              <Key onClick={() => op("-")} className="bg-accent">
+                −
+              </Key>
+              <Key onClick={() => op("+")} className="bg-accent">
+                +
+              </Key>
+              <Key
+                onClick={() => setS((x) => pressEquals(x))}
+                className="row-span-2 bg-primary text-primary-foreground"
+              >
                 =
               </Key>
             </div>

@@ -37,7 +37,9 @@ export function MemeCard({ meme, className }: { meme: Meme; className?: string }
     );
   }
   return (
-    <div className={cn("sticker-lg overflow-hidden bg-ink text-ink-foreground animate-pop", className)}>
+    <div
+      className={cn("sticker-lg overflow-hidden bg-ink text-ink-foreground animate-pop", className)}
+    >
       <p className="px-5 pt-5 text-center font-display text-xl font-extrabold uppercase leading-tight">
         {meme.top}
       </p>

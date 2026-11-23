@@ -2,13 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Receipt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState, PageHeader } from "@/components/PageHeader";
-import { friendsQuery, priceItemsQuery, quipAdd, type Friend } from "@/lib/data";
+import { friendsQuery, priceItemsQuery, profileQuery, quipAdd, type Friend } from "@/lib/data";
 import { QuickAdd } from "@/components/QuickAdd";
 import { cartNote, cartTotal, type CartLine } from "@/lib/prices";
 import { calcBus } from "@/lib/calc";
@@ -19,7 +20,10 @@ export const Route = createFileRoute("/_authenticated/add")({
   head: () => ({
     meta: [
       { title: "Add hisaab — The Peacekeeper" },
-      { name: "description", content: "Log a debt, a due, or split a bill with your hostel friends." },
+      {
+        name: "description",
+        content: "Log a debt, a due, or split a bill with your hostel friends.",
+      },
       { property: "og:title", content: "Add hisaab — The Peacekeeper" },
       { property: "og:description", content: "Log a split in seconds." },
     ],
@@ -28,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/add")({
     Promise.all([
       context.queryClient.ensureQueryData(friendsQuery),
       context.queryClient.ensureQueryData(priceItemsQuery),
+      context.queryClient.ensureQueryData(profileQuery),
     ]),
   component: AddPage,
 });
@@ -38,17 +43,18 @@ const MODES: Array<{ id: Kind; title: string; emoji: string; sub: string }> = [
   { id: "split", title: "Split", emoji: "🍕", sub: "Bill sabme baraabar baanto" },
 ];
 
-
 function AddPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: friends } = useSuspenseQuery(friendsQuery);
+  const { data: myProfile } = useSuspenseQuery(profileQuery);
   const [mode, setMode] = useState<Kind>("due");
   const [friendId, setFriendId] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [payer, setPayer] = useState<string>("me");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [proofUrl, setProofUrl] = useState("");
   const { data: priceRows } = useSuspenseQuery(priceItemsQuery);
   const [cart, setCart] = useState<CartLine[]>([]);
 
@@ -70,25 +76,77 @@ function AddPage() {
 
   const save = useMutation({
     mutationFn: async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      const meId = authData.user?.id;
+      if (!meId) throw new Error("Not authenticated");
+
       if (mode === "split") {
         const group_id = crypto.randomUUID();
-        const rows = splitRows.map((r) => ({ ...r, kind: "split", note: note.trim(), group_id }));
-        const { error } = await supabase.from("entries").insert(rows);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("entries").insert({
-          friend_id: friendId!,
-          kind: mode,
-          direction: mode === "due" ? "they_owe" : "i_owe",
-          amount: round2(total),
-          note: note.trim(),
+        const rows = splitRows.map((r) => {
+          const friendObj = friends.find((f) => f.id === r.friend_id);
+          return {
+            ...r,
+            kind: "split",
+            note: note.trim(),
+            group_id,
+            proof_url: proofUrl.trim() || null,
+            status: friendObj?.friend_user_id ? "pending" : "confirmed",
+          };
         });
+        const { data: inserted, error } = await supabase.from("entries").insert(rows).select();
         if (error) throw error;
+
+        // Send notice to any linked friends in the split
+        for (const row of rows) {
+          const f = friends.find((fr) => fr.id === row.friend_id);
+          if (f?.friend_user_id) {
+            const entryItem = inserted?.find((e) => e.friend_id === row.friend_id);
+            await supabase.from("notices").insert({
+              sender_id: meId,
+              receiver_id: f.friend_user_id,
+              type: "due_request",
+              amount: row.amount,
+              entry_id: entryItem?.id ?? null,
+              message: `${myProfile?.display_name ?? "Roommate"} ne split add kiya: ${formatINR(row.amount)} ("${note.trim() || "Split bill"}")`,
+            });
+          }
+        }
+      } else {
+        const selectedFriend = friends.find((f) => f.id === friendId);
+        const isLinked = Boolean(selectedFriend?.friend_user_id);
+        const { data: inserted, error } = await supabase
+          .from("entries")
+          .insert({
+            friend_id: friendId!,
+            kind: mode,
+            direction: mode === "due" ? "they_owe" : "i_owe",
+            amount: round2(total),
+            note: note.trim(),
+            proof_url: proofUrl.trim() || null,
+            status: isLinked ? "pending" : "confirmed",
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // If friend is linked on peacekeeper, send them an in-app notice
+        if (selectedFriend?.friend_user_id) {
+          await supabase.from("notices").insert({
+            sender_id: meId,
+            receiver_id: selectedFriend.friend_user_id,
+            type: "due_request",
+            amount: round2(total),
+            entry_id: inserted.id,
+            message: `${myProfile?.display_name ?? "Roommate"} ne ${mode === "due" ? "due" : "debt"} add kiya: ${formatINR(round2(total))} ("${note.trim() || "Hostel hisaab"}")`,
+          });
+        }
       }
     },
     onSuccess: () => {
       toast.success(quipAdd());
       qc.invalidateQueries({ queryKey: ["entries"] });
+      qc.invalidateQueries({ queryKey: ["notices"] });
       navigate({ to: "/home" });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -97,7 +155,8 @@ function AddPage() {
   function submit(e: React.FormEvent): void {
     e.preventDefault();
     if (!(total > 0)) return void toast.error("Amount toh daalo, ₹0 ka udhaar nahi hota 😂");
-    if (mode !== "split" && !friendId) return void toast.error("Kiska hisaab hai? Dost choose karo 👆");
+    if (mode !== "split" && !friendId)
+      return void toast.error("Kiska hisaab hai? Dost choose karo 👆");
     if (mode === "split" && splitRows.length === 0)
       return void toast.error("Split mein kam se kam ek dost chahiye 🤷");
     save.mutate();
@@ -107,7 +166,11 @@ function AddPage() {
     return (
       <div>
         <PageHeader kicker="Add" title="Naya hisaab" sticker="✍️" />
-        <EmptyState sticker="🦗" title="Pehle dost toh add karo" sub="Bina dost ke udhaar kisko doge? Khud ko?">
+        <EmptyState
+          sticker="🦗"
+          title="Pehle dost toh add karo"
+          sub="Bina dost ke udhaar kisko doge? Khud ko?"
+        >
           <Button asChild>
             <Link to="/friends">👯 Dost add karo</Link>
           </Button>
@@ -150,7 +213,9 @@ function AddPage() {
       <form onSubmit={submit} className="sticker-lg grid gap-6 p-6 md:grid-cols-2 md:p-8">
         <div className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="amount">{mode === "split" ? "Total bill (₹)" : "Kitne paise? (₹)"}</Label>
+            <Label htmlFor="amount">
+              {mode === "split" ? "Total bill (₹)" : "Kitne paise? (₹)"}
+            </Label>
             <Input
               id="amount"
               inputMode="decimal"
@@ -165,8 +230,31 @@ function AddPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="note">Kis cheez ka?</Label>
-            <Input id="note" placeholder="2 chai, 1 samosa…" value={note} onChange={(e) => setNote(e.target.value)} />
-            <p className="text-xs text-muted-foreground">Quick add se bill banao, ya seedha amount likho — dono editable hai ✏️</p>
+            <Input
+              id="note"
+              placeholder="2 chai, 1 samosa…"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Quick add se bill banao, ya seedha amount likho — dono editable hai ✏️
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="proof" className="flex items-center gap-1.5">
+              <Receipt className="h-4 w-4 text-primary" /> UPI Ref / Proof (Optional 🧾)
+            </Label>
+            <Input
+              id="proof"
+              placeholder="e.g. UPI Ref #402919283 ya slip link"
+              value={proofUrl}
+              onChange={(e) => setProofUrl(e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Proof daalne se entry pe &quot;Verified Bill 🧾&quot; ka badge lagta hai aur dispute
+              kam hote hai!
+            </p>
           </div>
         </div>
 
@@ -182,6 +270,7 @@ function AddPage() {
                   {friends.map((f) => (
                     <Chip key={f.id} active={payer === f.id} onClick={() => setPayer(f.id)}>
                       {f.emoji} {f.name}
+                      {f.friend_user_id && <span className="ml-1 text-[10px]">⚡</span>}
                     </Chip>
                   ))}
                 </div>
@@ -194,15 +283,24 @@ function AddPage() {
                       key={f.id}
                       active={picked.includes(f.id) || payer === f.id}
                       onClick={() =>
-                        setPicked((p) => (p.includes(f.id) ? p.filter((x) => x !== f.id) : [...p, f.id]))
+                        setPicked((p) =>
+                          p.includes(f.id) ? p.filter((x) => x !== f.id) : [...p, f.id],
+                        )
                       }
                     >
                       {f.emoji} {f.name}
+                      {f.friend_user_id && <span className="ml-1 text-[10px]">⚡</span>}
                     </Chip>
                   ))}
                 </div>
               </div>
-              <SplitPreview rows={splitRows} friends={friends} heads={headCount} total={total} payer={payer} />
+              <SplitPreview
+                rows={splitRows}
+                friends={friends}
+                heads={headCount}
+                total={total}
+                payer={payer}
+              />
             </>
           ) : (
             <div className="space-y-2">
@@ -211,6 +309,7 @@ function AddPage() {
                 {friends.map((f) => (
                   <Chip key={f.id} active={friendId === f.id} onClick={() => setFriendId(f.id)}>
                     {f.emoji} {f.name}
+                    {f.friend_user_id && <span className="ml-1 text-[10px]">⚡</span>}
                   </Chip>
                 ))}
               </div>
@@ -226,7 +325,15 @@ function AddPage() {
   );
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -265,7 +372,8 @@ function SplitPreview({
   return (
     <div className="rounded-xl border-2 border-ink bg-accent p-4">
       <p className="text-sm font-bold">
-        {formatINR(total)} ÷ {heads} log = <span className="text-primary">{formatINR(total / heads)}</span> each
+        {formatINR(total)} ÷ {heads} log ={" "}
+        <span className="text-primary">{formatINR(total / heads)}</span> each
       </p>
       <ul className="mt-2 space-y-1 text-sm">
         {payer === "me"
